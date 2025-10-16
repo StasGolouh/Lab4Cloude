@@ -15,7 +15,7 @@ const server = http.createServer((req, res) => {
     }
 
     const parsedUrl = url.parse(req.url, true);
-    const name = parsedUrl.query.name  'world';
+    const name = parsedUrl.query.name || 'world';
 
     const responseObject = {
         hello: name,
