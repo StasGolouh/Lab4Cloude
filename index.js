@@ -1,31 +1,41 @@
 const http = require('http');
 const url = require('url');
-const port = process.env.PORT || 1111;
+const SERVER_PORT = process.env.PORT || 1111;
 
-const server = http.createServer((req, res) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 
-    if (req.method === 'OPTIONS') {
-        res.writeHead(204);
-        res.end();
+const requestHandler = (request, response) => {
+    // Встановлюємо заголовки 
+    response.setHeader('Access-Control-Allow-Origin', '*');
+    response.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    response.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Обробляємо запит, який надсилає браузер
+    if (request.method === 'OPTIONS') {
+        response.writeHead(204);
+        response.end();
         return;
     }
 
-    const parsedUrl = url.parse(req.url, true);
-    const name = parsedUrl.query.name || 'world';
+    // Парсимо URL, щоб отримати query-параметри
+    const urlComponents = url.parse(request.url, true);
+    const guestName = urlComponents.query.name || 'world';
 
-    const responseObj = {
-        hello: name,
+    // Готуємо дані для відповіді у форматі JSON
+    const responsePayload = {
+        hello: guestName,
         runtime: 'nodejs',
         region: process.env.GCP_REGION || 'unknown'
     };
     
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(responseObj));
-});
+    // Надсилаємо відповідь клієнту
+    response.writeHead(200, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify(responsePayload));
+};
 
-server.listen(port, () => {
-    console.log(`Server's running on port ${port}`);
+// Створюємо екземпляр сервера, передаючи йому нашу функцію-обробник
+const apiServer = http.createServer(requestHandler);
+
+// Запускаємо сервер
+apiServer.listen(SERVER_PORT, () => {
+    console.log(`Сервер успішно запущено на порті ${SERVER_PORT}`);
 });
